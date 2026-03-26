@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-headline: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  --color-primary: #004595; /* ASPAC Blue */
+  --color-on-primary: #ffffff;
+  --color-primary-container: #d1e4ff;
+  --color-on-primary-container: #001d36;
+  --color-primary-fixed: #d1e4ff;
+  --color-on-primary-fixed-variant: #004595;
+
+  --color-secondary: #545f71;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d8e3f8;
+  --color-on-secondary-container: #111c2b;
+  --color-secondary-fixed: #d8e3f8;
+
+  --color-tertiary: #FDB913; /* Manila Gold */
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #ffe08d;
+  --color-on-tertiary-container: #241a00;
+  --color-tertiary-fixed: #ffe08d;
+  --color-on-tertiary-fixed-variant: #241a00;
+
+  --color-surface: #fdfcff;
+  --color-on-surface: #1a1c1e;
+  --color-surface-variant: #dfe2eb;
+  --color-on-surface-variant: #43474e;
+  --color-surface-dim: #d9d9d9;
+  
+  --color-outline: #73777f;
+  --color-outline-variant: #c3c7cf;
+
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f7f9fc;
+  --color-surface-container: #f1f4f9;
+  --color-surface-container-high: #ebeef3;
+  --color-surface-container-highest: #e5e8ed;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #410002;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-sans antialiased;
+  }
+}
+
+.senior-mode {
+  font-size: 1.15rem;
+}
+
+.senior-mode .text-\[10px\] { font-size: 0.75rem; }
+.senior-mode .text-xs { font-size: 0.9rem; }
+.senior-mode .text-sm { font-size: 1.1rem; }
+.senior-mode .text-base { font-size: 1.2rem; }
+.senior-mode .text-lg { font-size: 1.3rem; }
+.senior-mode .text-xl { font-size: 1.5rem; }
+.senior-mode .text-2xl { font-size: 1.8rem; }
+.senior-mode .text-3xl { font-size: 2.2rem; }
+.senior-mode .text-4xl { font-size: 2.8rem; }
+
+.primary-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #002d62 100%);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
