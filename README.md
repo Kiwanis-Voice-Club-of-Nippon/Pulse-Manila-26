@@ -39,7 +39,6 @@ Not yet wired:
 - Tailwind CSS
 - pnpm as the intended package manager
 - Supabase schema scaffolds in `supabase/`
-- GitHub Actions templates in `.github/workflows/`
 
 ## Quick start
 
