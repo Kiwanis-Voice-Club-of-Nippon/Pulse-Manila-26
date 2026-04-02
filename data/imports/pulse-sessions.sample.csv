@@ -1,0 +1,4 @@
+slug,title,description,speaker_names,start_at,end_at,venue_slug,room_slug,track_slug,segment_slugs,source_type,published,featured
+opening-ceremony-and-flag-procession,Opening Ceremony and Flag Procession,Convention welcome and official launch,Kiwanis International Leadership,2026-06-25T09:00:00+08:00,2026-06-25T10:30:00+08:00,picc,plenary-hall,plenary,general,official_program,true,true
+aspac-delegation-briefing,ASPAC Delegation Briefing,Region-specific logistics and reminders,ASPAC Convention Leads,2026-06-25T11:00:00+08:00,2026-06-25T11:45:00+08:00,picc,reception-hall,leadership-labs,aspac|leadership,aspac_highlight,true,true
+service-project-showcase,Service Project Showcase,Scalable district service models,Club Leaders from Asia-Pacific,2026-06-25T13:30:00+08:00,2026-06-25T14:45:00+08:00,picc,reception-hall,service-impact,general|aspac,official_program,true,false
