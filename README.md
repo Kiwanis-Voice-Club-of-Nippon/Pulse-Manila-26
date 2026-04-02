@@ -2,6 +2,11 @@
 
 Pulse is a standalone, mobile-first convention companion for the Kiwanis International Convention in Manila, June 2026.
 
+## Live
+
+- Publish entrypoint: https://aistudio.google.com/apps/c181d287-4d12-4299-9a6b-420f4c2a5bba?showAssistant=true&showPreview=true
+- Frontend: https://pulse-kiwanis-309064718968.us-west1.run.app
+
 It is intentionally narrow:
 
 - public access to the convention schedule
@@ -37,14 +42,14 @@ Not yet wired:
 - Next.js 15
 - TypeScript
 - Tailwind CSS
-- pnpm as the intended package manager
+- pnpm 9.x as the intended package manager
 - Supabase schema scaffolds in `supabase/`
 
 ## Quick start
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Open `http://localhost:3000`.
@@ -52,23 +57,23 @@ Open `http://localhost:3000`.
 ## Commands
 
 ```bash
-npm run dev
-npm run build
-npm run lint
-npm run typecheck
-npm run test
-npm run import:preview
+pnpm dev
+pnpm build
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm import:preview
 ```
 
 ## Repo map
 
-- [src/app](/Users/School/pulse-manila-2026/src/app): public app routes
-- [src/components/pulse](/Users/School/pulse-manila-2026/src/components/pulse): shared UI and PWA helpers
-- [src/lib/pulse-data.ts](/Users/School/pulse-manila-2026/src/lib/pulse-data.ts): seed data and schedule helpers
-- [supabase/migrations/202603260001_init_pulse.sql](/Users/School/pulse-manila-2026/supabase/migrations/202603260001_init_pulse.sql): relational schema scaffold
-- [data/imports/pulse-sessions.sample.csv](/Users/School/pulse-manila-2026/data/imports/pulse-sessions.sample.csv): sample import file
-- [docs/architecture.md](/Users/School/pulse-manila-2026/docs/architecture.md): product and technical structure
-- [docs/content-operations-event-week.md](/Users/School/pulse-manila-2026/docs/content-operations-event-week.md): event-week content workflow
+- [src/app](./src/app): public app routes
+- [src/components/pulse](./src/components/pulse): shared UI and PWA helpers
+- [src/lib/pulse-data.ts](./src/lib/pulse-data.ts): seed data and schedule helpers
+- [supabase/migrations/202603260001_init_pulse.sql](./supabase/migrations/202603260001_init_pulse.sql): relational schema scaffold
+- [data/imports/pulse-sessions.sample.csv](./data/imports/pulse-sessions.sample.csv): sample import file
+- [docs/architecture.md](./docs/architecture.md): product and technical structure
+- [docs/content-operations-event-week.md](./docs/content-operations-event-week.md): event-week content workflow
 
 ## Product constraints
 
