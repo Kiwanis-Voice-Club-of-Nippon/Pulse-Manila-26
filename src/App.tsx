@@ -31,6 +31,7 @@ import {
   ConventionDayId,
   Session,
   Tab,
+  Update,
   UpdateAction,
   VenueLocation,
 } from './types';
@@ -41,6 +42,16 @@ import {
   UPDATES,
   VENUE_LOCATIONS,
 } from './mockData';
+import { I18nContext, Language, DICTIONARIES, LANGUAGE_LABELS, useI18n } from './i18n';
+
+const LANGUAGE_STORAGE_KEY = 'pulse-manila-2026-lang';
+const WIFI_NETWORK_NAME = 'SMX-ASPAC-2026';
+
+function readLanguage(): Language {
+  if (typeof window === 'undefined') return 'en';
+  const saved = window.localStorage.getItem(LANGUAGE_STORAGE_KEY) as Language;
+  return saved && DICTIONARIES[saved] ? saved : 'en';
+}
 
 const SAVED_SESSION_STORAGE_KEY = 'pulse-manila-2026-saved-sessions';
 const SENIOR_MODE_STORAGE_KEY = 'pulse-manila-2026-senior-mode';
@@ -55,19 +66,27 @@ type NavigateOptions = {
   venueLocationId?: string;
 };
 
-const TAB_ITEMS: Array<{ id: Tab; label: string; icon: React.ReactNode }> = [
-  { id: 'today', label: 'Today', icon: <Clock className="w-5 h-5" /> },
-  { id: 'schedule', label: 'Schedule', icon: <BookmarkIcon className="w-5 h-5" /> },
-  { id: 'updates', label: 'Updates', icon: <Bell className="w-5 h-5" /> },
-  { id: 'venue', label: 'Venue', icon: <MapIcon className="w-5 h-5" /> },
-  { id: 'help', label: 'Help', icon: <InfoIcon className="w-5 h-5" /> },
+const TAB_ITEMS: Array<{ id: Tab; icon: React.ReactNode }> = [
+  { id: 'today', icon: <Clock className="w-5 h-5" /> },
+  { id: 'schedule', icon: <BookmarkIcon className="w-5 h-5" /> },
+  { id: 'updates', icon: <Bell className="w-5 h-5" /> },
+  { id: 'venue', icon: <MapIcon className="w-5 h-5" /> },
+  { id: 'help', icon: <InfoIcon className="w-5 h-5" /> },
 ];
 
 export default function App() {
+  const [language, setLanguage] = useState<Language>(() => readLanguage());
+  
+  useEffect(() => {
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  }, [language]);
+
+  const t = DICTIONARIES[language];
+
   const initialRoute = useMemo(readRouteState, []);
   const [activeTab, setActiveTab] = useState<Tab>(initialRoute.tab);
   const [activeDayId, setActiveDayId] = useState<ConventionDayId>(
-    initialRoute.dayId ?? getInitialConventionDayId(),
+    initialRoute.dayId ?? getInitialConventionDayId(language),
   );
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
     initialRoute.sessionId ?? null,
@@ -86,11 +105,11 @@ export default function App() {
 
   const sessions = useMemo(
     () =>
-      SESSIONS.map((session) => ({
+      SESSIONS[language].map((session) => ({
         ...session,
         isSaved: savedSessionIds.includes(session.id),
       })),
-    [savedSessionIds],
+    [savedSessionIds, language],
   );
 
   const selectedSession = useMemo(
@@ -100,8 +119,8 @@ export default function App() {
 
   const currentDay = useMemo(
     () =>
-      CONVENTION_DAYS.find((day) => day.id === activeDayId) ?? CONVENTION_DAYS[0],
-    [activeDayId],
+      CONVENTION_DAYS[language].find((day) => day.id === activeDayId) ?? CONVENTION_DAYS[language][0],
+    [activeDayId, language],
   );
 
   const liveSessions = useMemo(
@@ -120,8 +139,8 @@ export default function App() {
   );
 
   const urgentUpdate = useMemo(
-    () => UPDATES.find((update) => update.type === 'urgent') ?? null,
-    [],
+    () => UPDATES[language].find((update) => update.type === 'urgent') ?? null,
+    [language],
   );
 
   useEffect(() => {
@@ -154,7 +173,7 @@ export default function App() {
     const handlePopState = () => {
       const route = readRouteState();
       setActiveTab(route.tab);
-      setActiveDayId(route.dayId ?? getInitialConventionDayId());
+      setActiveDayId(route.dayId ?? getInitialConventionDayId(language));
       setSelectedSessionId(route.sessionId ?? null);
       setHighlightedVenueId(route.venueLocationId ?? 'help-desk');
       setSavedOnly(route.savedOnly);
@@ -201,7 +220,7 @@ export default function App() {
         : [...currentIds, sessionId],
     );
     setToastMessage(
-      isSaved ? 'Removed from My Schedule.' : 'Saved to My Schedule.',
+      isSaved ? t.toastRemoved : t.toastSaved,
     );
   };
 
@@ -221,7 +240,7 @@ export default function App() {
       await navigator.clipboard.writeText(text);
       setToastMessage(successMessage);
     } catch {
-      setToastMessage('Copy failed on this device.');
+      setToastMessage(t.toastCopyFailed);
     }
   };
 
@@ -241,14 +260,14 @@ export default function App() {
           text: `${session.title} • ${session.time} • ${session.room}`,
           url: shareUrl,
         });
-        setToastMessage('Session link shared.');
+        setToastMessage(t.toastSessionShared);
         return;
       } catch {
         // Fall back to clipboard if share is cancelled or unsupported.
       }
     }
 
-    await copyText(shareUrl, 'Session link copied.');
+    await copyText(shareUrl, t.toastSessionCopied);
   };
 
   const renderTab = () => {
@@ -262,8 +281,9 @@ export default function App() {
             savedSessions={savedSessions}
             urgentUpdate={urgentUpdate}
             onCopyWifi={() =>
-              copyText('SMX-ASPAC-2026 / KIWANIS2026', 'Wi-Fi details copied.')
+              copyText(WIFI_NETWORK_NAME, t.toastWifiCopied)
             }
+            highlightedVenueId={highlightedVenueId}
             onNavigate={navigate}
             onOpenSession={openSession}
             onSelectDay={setActiveDayId}
@@ -287,7 +307,7 @@ export default function App() {
         return (
           <VenueView
             highlightedVenueId={highlightedVenueId}
-            onCopyAddress={() => copyText(VENUE_ADDRESS, 'Venue address copied.')}
+            onCopyAddress={() => copyText(VENUE_ADDRESS, t.toastVenueCopied)}
             onHighlightVenue={setHighlightedVenueId}
           />
         );
@@ -295,7 +315,7 @@ export default function App() {
         return (
           <HelpView
             onCopyWifi={() =>
-              copyText('SMX-ASPAC-2026 / KIWANIS2026', 'Wi-Fi details copied.')
+              copyText(WIFI_NETWORK_NAME, t.toastWifiCopied)
             }
             onNavigate={navigate}
           />
@@ -305,26 +325,29 @@ export default function App() {
     }
   };
 
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+
   return (
-    <div
-      className={cn(
-        'min-h-screen flex flex-col max-w-md mx-auto bg-surface shadow-2xl relative overflow-hidden',
-        seniorMode && 'senior-mode',
-      )}
-    >
-      <header className="fixed top-0 w-full max-w-md z-50 bg-white/95 backdrop-blur-md border-b border-outline-variant/20">
-        <div className="px-5 py-3 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[11px] font-label font-black uppercase tracking-[0.24em] text-secondary">
-              ASPAC Manila 2026
-            </p>
-            <h1 className="text-2xl font-black text-primary font-headline tracking-tight">
-              Pulse
-            </h1>
-            <p className="text-sm text-on-surface-variant leading-tight">
-              {currentDay.fullLabel}
-            </p>
-          </div>
+    <I18nContext.Provider value={{ language, t }}>
+      <div
+        className={cn(
+          'min-h-screen flex flex-col max-w-md mx-auto bg-surface shadow-2xl relative overflow-hidden',
+          seniorMode && 'senior-mode',
+        )}
+      >
+        <header className="fixed top-0 w-full max-w-md z-50 bg-white/95 backdrop-blur-md border-b border-outline-variant/20">
+          <div className="px-5 py-3 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-label font-black uppercase tracking-[0.24em] text-secondary">
+                {t.appSubtitle}
+              </p>
+              <h1 className="text-2xl font-black text-primary font-headline tracking-tight">
+                {t.appTitle}
+              </h1>
+              <p className="text-sm text-on-surface-variant leading-tight">
+                {currentDay.fullLabel}
+              </p>
+            </div>
           <div className="flex items-center gap-1">
             <button
               aria-label="Open updates"
@@ -352,6 +375,36 @@ export default function App() {
             >
               <InfoIcon className="w-5 h-5" />
             </button>
+            <div className="relative">
+              <button
+                aria-label="Switch language"
+                className="p-2 rounded-full transition-colors text-primary hover:bg-surface-container-high"
+                onClick={() => setLangMenuOpen((prev) => !prev)}
+                type="button"
+              >
+                <Globe className="w-5 h-5" />
+              </button>
+              {langMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 bg-surface text-on-surface border border-outline-variant/20 shadow-xl rounded-2xl py-2 z-50 w-40 max-h-60 overflow-y-auto">
+                  {(Object.keys(LANGUAGE_LABELS) as Language[]).map((langId) => (
+                    <button
+                      key={langId}
+                      type="button"
+                      className={cn(
+                        'w-full text-left px-4 py-2.5 text-sm font-semibold active:scale-[0.98] transition-transform',
+                        language === langId ? 'bg-primary/10 text-primary' : 'hover:bg-surface-container-highest'
+                      )}
+                      onClick={() => {
+                        setLanguage(langId);
+                        setLangMenuOpen(false);
+                      }}
+                    >
+                      {LANGUAGE_LABELS[langId]}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               aria-label={seniorMode ? 'Turn off large text' : 'Turn on large text'}
               className={cn(
@@ -385,16 +438,25 @@ export default function App() {
 
       <nav className="fixed bottom-0 w-full max-w-md z-50 bg-white/95 backdrop-blur-md border-t border-outline-variant/20 pb-safe pt-2">
         <div className="flex justify-around items-center px-3 h-16">
-          {TAB_ITEMS.map((item) => (
-            <React.Fragment key={item.id}>
-              <NavButton
-                active={activeTab === item.id}
-                icon={item.icon}
-                label={item.label}
-                onClick={() => navigate(item.id)}
-              />
-            </React.Fragment>
-          ))}
+          {TAB_ITEMS.map((item) => {
+            const labelMap = {
+              today: t.tabToday,
+              schedule: t.tabSchedule,
+              updates: t.tabUpdates,
+              venue: t.tabVenue,
+              help: t.tabHelp,
+            };
+            return (
+              <React.Fragment key={item.id}>
+                <NavButton
+                  active={activeTab === item.id}
+                  icon={item.icon}
+                  label={labelMap[item.id]}
+                  onClick={() => navigate(item.id)}
+                />
+              </React.Fragment>
+            );
+          })}
         </div>
       </nav>
 
@@ -402,7 +464,7 @@ export default function App() {
         {selectedSession && (
           <SessionDetail
             dayLabel={
-              CONVENTION_DAYS.find((day) => day.id === selectedSession.day)?.fullLabel ??
+              CONVENTION_DAYS[language].find((day) => day.id === selectedSession.day)?.fullLabel ??
               currentDay.fullLabel
             }
             onClose={() => setSelectedSessionId(null)}
@@ -429,6 +491,7 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+    </I18nContext.Provider>
   );
 }
 
@@ -466,6 +529,7 @@ function HomeView({
   liveSessions,
   savedSessions,
   urgentUpdate,
+  highlightedVenueId,
   onCopyWifi,
   onNavigate,
   onOpenSession,
@@ -475,19 +539,25 @@ function HomeView({
   currentDayLabel: string;
   liveSessions: Session[];
   savedSessions: Session[];
-  urgentUpdate: (typeof UPDATES)[number] | null;
+  urgentUpdate: Update | null;
+  highlightedVenueId?: string;
   onCopyWifi: () => void;
   onNavigate: (tab: Tab, options?: NavigateOptions) => void;
   onOpenSession: (sessionId: string) => void;
   onSelectDay: (dayId: ConventionDayId) => void;
 }) {
+  const { t, language } = useI18n();
+  const venueContent = highlightedVenueId
+    ? VENUE_LOCATIONS[language].find((v) => v.id === highlightedVenueId)
+    : null;
+
   return (
     <div className="px-5 py-5 space-y-6">
       <section className="relative overflow-hidden rounded-[28px] primary-gradient text-on-primary p-6 shadow-xl">
         <div className="relative z-10 space-y-4">
           <div className="inline-flex px-3 py-1 bg-white/15 rounded-full">
             <span className="font-label text-[10px] font-extrabold uppercase tracking-[0.22em]">
-              Mabuhay
+              {t.mabuhay}
             </span>
           </div>
           <div className="space-y-2">
@@ -495,32 +565,54 @@ function HomeView({
               {currentDayLabel}
             </p>
             <h2 className="text-3xl font-black leading-tight">
-              Welcome to the Kiwanis ASPAC Manila 2026 companion.
+              {t.welcomeHeading}
             </h2>
           </div>
           <p className="text-primary-fixed/90 text-base leading-relaxed">
-            Pulse helps you find today&apos;s schedule, room locations, urgent
-            announcements, and practical attendee help in one place.
+            {t.welcomeDesc}
           </p>
           <div className="grid grid-cols-2 gap-3 pt-1">
             <QuickActionButton
-              label="Today’s schedule"
+              label={t.btnTodaySchedule}
               onClick={() => onNavigate('schedule', { dayId: activeDayId })}
             />
             <QuickActionButton
-              label="Saved sessions"
+              label={t.btnSavedSessions}
               onClick={() => onNavigate('schedule', { dayId: activeDayId, savedOnly: true })}
             />
-            <QuickActionButton label="Updates" onClick={() => onNavigate('updates')} />
-            <QuickActionButton label="Venue guide" onClick={() => onNavigate('venue')} />
+            <QuickActionButton label={t.btnUpdates} onClick={() => onNavigate('updates')} />
+            <QuickActionButton label={t.btnVenueGuide} onClick={() => onNavigate('venue')} />
           </div>
         </div>
         <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-tertiary/20 rounded-full blur-3xl" />
       </section>
 
+      {venueContent && (
+        <button
+          className="w-full bg-secondary-container text-on-secondary-container p-4 rounded-3xl flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform text-left border border-outline-variant/10"
+          onClick={() => onNavigate('venue', { venueLocationId: venueContent.id })}
+          type="button"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-2.5 bg-white/60 rounded-full text-primary">
+              <MapPin className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-label font-black uppercase tracking-[0.15em] text-primary/70 mb-0.5">
+                Directions
+              </p>
+              <p className="font-bold text-primary leading-tight">
+                Open {venueContent.name} map
+              </p>
+            </div>
+          </div>
+          <ChevronRightIcon className="w-5 h-5 text-primary/50 flex-none" />
+        </button>
+      )}
+
       <section className="space-y-3">
         <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5">
-          {CONVENTION_DAYS.map((day) => (
+          {CONVENTION_DAYS[language].map((day) => (
             <button
               className={cn(
                 'flex-none px-5 py-3 rounded-full font-label text-sm font-bold shadow-sm transition-all active:scale-95',
@@ -540,10 +632,10 @@ function HomeView({
 
       <section className="grid grid-cols-2 gap-3">
         <InfoCard
-          actionLabel="Copy details"
+          actionLabel="Copy SSID"
           icon={<Globe className="w-5 h-5" />}
           onAction={onCopyWifi}
-          subtitle="SMX-ASPAC-2026 / KIWANIS2026"
+          subtitle={WIFI_NETWORK_NAME}
           title="Wi-Fi"
         />
         <InfoCard
@@ -735,6 +827,7 @@ function ScheduleView({
   setSavedOnly: (value: boolean) => void;
 }) {
   const [activeCategory, setActiveCategory] = useState('All');
+  const { language } = useI18n();
 
   const daySessions = useMemo(
     () => sessions.filter((session) => session.day === activeDayId),
@@ -789,7 +882,7 @@ function ScheduleView({
           </p>
         </div>
         <div className="flex gap-3 overflow-x-auto no-scrollbar">
-          {CONVENTION_DAYS.map((day) => (
+          {CONVENTION_DAYS[language].map((day) => (
             <button
               className={cn(
                 'flex-shrink-0 flex flex-col items-center justify-center w-16 h-20 rounded-2xl transition-all active:scale-95',
@@ -922,8 +1015,9 @@ function ScheduleView({
 
 function UpdatesView({ onAction }: { onAction: (action: UpdateAction) => void }) {
   const [activeCategory, setActiveCategory] = useState('All');
+  const { language } = useI18n();
 
-  const visibleUpdates = UPDATES.filter((update) => {
+  const visibleUpdates = UPDATES[language].filter((update) => {
     if (activeCategory === 'All') {
       return true;
     }
@@ -1040,6 +1134,7 @@ function VenueView({
   onHighlightVenue: (venueLocationId: string) => void;
 }) {
   const [activeView, setActiveView] = useState<'guide' | 'getting-there'>('guide');
+  const { language } = useI18n();
 
   return (
     <div className="px-5 py-5 space-y-6">
@@ -1089,7 +1184,7 @@ function VenueView({
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {VENUE_LOCATIONS.map((location) => (
+              {VENUE_LOCATIONS[language].map((location) => (
                 <button
                   className={cn(
                     'rounded-2xl p-4 text-left border transition-colors active:scale-[0.98]',
@@ -1120,7 +1215,7 @@ function VenueView({
           <section className="space-y-3">
             <SectionHeader>Key locations</SectionHeader>
             <div className="grid gap-3">
-              {VENUE_LOCATIONS.map((location) => (
+              {VENUE_LOCATIONS[language].map((location) => (
                 <React.Fragment key={location.id}>
                   <VenueCard
                     highlighted={highlightedVenueId === location.id}
@@ -1192,8 +1287,9 @@ function HelpView({
   onCopyWifi: () => void;
   onNavigate: (tab: Tab, options?: NavigateOptions) => void;
 }) {
+  const { language } = useI18n();
   const [activeCategory, setActiveCategory] = useState('General');
-  const categories = Array.from(new Set(FAQS.map((faq) => faq.category)));
+  const categories = Array.from(new Set(FAQS[language].map((faq) => faq.category)));
 
   return (
     <div className="px-5 py-5 space-y-6">
@@ -1207,8 +1303,8 @@ function HelpView({
 
       <section className="grid gap-3">
         <SupportCard
-          actionLabel="Copy Wi-Fi"
-          description="SMX-ASPAC-2026 / KIWANIS2026"
+          actionLabel="Copy SSID"
+          description={WIFI_NETWORK_NAME}
           icon={<Globe className="w-5 h-5" />}
           onAction={onCopyWifi}
           title="Wi-Fi"
@@ -1255,7 +1351,7 @@ function HelpView({
       </nav>
 
       <div className="space-y-3">
-        {FAQS.filter((faq) => faq.category === activeCategory).map((faq) => (
+        {FAQS[language].filter((faq) => faq.category === activeCategory).map((faq) => (
           <details
             className="group bg-surface-container-lowest rounded-3xl border border-outline-variant/10 overflow-hidden"
             key={faq.id}
@@ -1651,12 +1747,12 @@ function DetailStat({ label, value }: { label: string; value: string }) {
 
 function readSavedSessionIds(): string[] {
   if (typeof window === 'undefined') {
-    return SESSIONS.filter((session) => session.isSaved).map((session) => session.id);
+    return SESSIONS.en.filter((session) => session.isSaved).map((session) => session.id);
   }
 
   const rawValue = window.localStorage.getItem(SAVED_SESSION_STORAGE_KEY);
   if (!rawValue) {
-    return SESSIONS.filter((session) => session.isSaved).map((session) => session.id);
+    return SESSIONS.en.filter((session) => session.isSaved).map((session) => session.id);
   }
 
   try {
@@ -1665,7 +1761,7 @@ function readSavedSessionIds(): string[] {
       ? parsed.filter((value): value is string => typeof value === 'string')
       : [];
   } catch {
-    return SESSIONS.filter((session) => session.isSaved).map((session) => session.id);
+    return SESSIONS.en.filter((session) => session.isSaved).map((session) => session.id);
   }
 }
 
@@ -1677,10 +1773,10 @@ function readBooleanStorage(storageKey: string): boolean {
   return window.localStorage.getItem(storageKey) === 'true';
 }
 
-function getInitialConventionDayId(): ConventionDayId {
+function getInitialConventionDayId(language: Language = 'en'): ConventionDayId {
   const todayInManila = getManilaDateId();
-  const matchingDay = CONVENTION_DAYS.find((day) => day.id === todayInManila);
-  return matchingDay?.id ?? CONVENTION_DAYS[0].id;
+  const matchingDay = CONVENTION_DAYS[language].find((day) => day.id === todayInManila);
+  return matchingDay?.id ?? CONVENTION_DAYS[language][0].id;
 }
 
 function getManilaDateId(): ConventionDayId | null {
@@ -1705,7 +1801,7 @@ function getManilaDateId(): ConventionDayId | null {
 }
 
 function isConventionDayId(value: string): value is ConventionDayId {
-  return CONVENTION_DAYS.some((day) => day.id === value);
+  return CONVENTION_DAYS.en.some((day) => day.id === value);
 }
 
 function readRouteState(): {

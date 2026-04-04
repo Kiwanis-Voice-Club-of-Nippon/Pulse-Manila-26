@@ -13,10 +13,12 @@ import {
   UPDATES,
   VENUE_LOCATIONS,
 } from './src/mockData.ts';
+import { type Language } from './src/i18n.ts';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const MODEL = process.env.GOOGLE_GENAI_MODEL ?? 'gemini-2.5-flash';
 const FEEDBACK_FILE_PATH = path.join(process.cwd(), 'feedback.json');
+const CONTENT_LANGUAGE: Language = 'en';
 
 function getAiMode(): 'vertex' | 'apiKey' | 'disabled' {
   const useVertex =
@@ -56,25 +58,25 @@ function createAiClient(): GoogleGenAI | null {
 }
 
 function buildConventionContext() {
-  const days = CONVENTION_DAYS.map(
+  const days = CONVENTION_DAYS[CONTENT_LANGUAGE].map(
     (day) => `- ${day.fullLabel}: ${day.homeLabel}`,
   ).join('\n');
 
-  const sessions = SESSIONS.map(
+  const sessions = SESSIONS[CONTENT_LANGUAGE].map(
     (session) =>
       `- ${session.day} ${session.time}-${session.endTime} | ${session.title} | ${session.room} | ${session.venue} | ${session.category.join(', ')}`,
   ).join('\n');
 
-  const updates = UPDATES.map(
+  const updates = UPDATES[CONTENT_LANGUAGE].map(
     (update) => `- ${update.title}: ${update.content}`,
   ).join('\n');
 
-  const venues = VENUE_LOCATIONS.map(
+  const venues = VENUE_LOCATIONS[CONTENT_LANGUAGE].map(
     (venue) =>
       `- ${venue.name} (${venue.floor}, ${venue.hall}): ${venue.description} ${venue.note}`,
   ).join('\n');
 
-  const faqs = FAQS.map(
+  const faqs = FAQS[CONTENT_LANGUAGE].map(
     (faq) => `- [${faq.category}] ${faq.question}: ${faq.answer}`,
   ).join('\n');
 
