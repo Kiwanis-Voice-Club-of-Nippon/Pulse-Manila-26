@@ -1,91 +1,56 @@
 # Pulse Manila 2026
 
-Pulse is a standalone, mobile-first convention companion for the Kiwanis International Convention in Manila, June 2026.
+Mobile-first convention companion for the Kiwanis ASPAC convention in Manila, June 2026.
 
-## Live
+Live: [pulse-kiwanis-309064718968.us-west1.run.app](https://pulse-kiwanis-309064718968.us-west1.run.app)
 
-- Publish entrypoint: https://aistudio.google.com/apps/c181d287-4d12-4299-9a6b-420f4c2a5bba?showAssistant=true&showPreview=true
-- Frontend: https://pulse-kiwanis-309064718968.us-west1.run.app
+Pulse is a focused tool, not a platform:
 
-It is intentionally narrow:
+- Convention schedule with fast search and room/venue lookup
+- Announcements and floor updates
+- ASPAC highlights
+- On-device saved sessions — no attendee login required
+- Offline-capable on weak venue internet
 
-- public access to the convention schedule
-- fast session, room, and venue lookup
-- announcements and floor updates
-- ASPAC-specific highlights
-- local saved sessions without attendee login
-
-Pulse is not a social network, not a ticketing layer, and not a replacement for official Kiwanis communication.
-
-## Current scaffold status
-
-This repo currently ships:
-
-- a public-facing Next.js 15 PWA shell
-- seeded schedule, announcements, venue, and ASPAC highlight data
-- schedule search and filters
-- session detail and room lookup pages
-- local bookmarks stored on-device
-- install prompt plus offline caching shell
-- import preview script, sample CSV, and Supabase-ready schema artifacts
-
-Not yet wired:
-
-- Supabase auth and live content CRUD
-- admin dashboard and analytics
-- push notifications
-- multilingual support
-- production data sync/import pipeline
+Not a social network, not a ticketing layer, not a replacement for official Kiwanis communications.
 
 ## Stack
 
-- Next.js 15
-- TypeScript
-- Tailwind CSS
-- pnpm 9.x as the intended package manager
-- Supabase schema scaffolds in `supabase/`
+- Next.js 15 · TypeScript · Tailwind CSS
+- pnpm 9.x
+- Supabase
 
 ## Quick start
 
 ```bash
-pnpm install
-pnpm dev
+pnpm install && pnpm dev
 ```
-
-Open `http://localhost:3000`.
 
 ## Commands
 
-```bash
-pnpm dev
-pnpm build
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm import:preview
-```
+| Command | What it does |
+|---------|-------------|
+| `pnpm dev` | Start dev server |
+| `pnpm build` | Production build |
+| `pnpm lint` | Lint |
+| `pnpm typecheck` | Type check |
+| `pnpm test` | Run tests |
+| `pnpm import:preview` | Preview data import |
 
 ## Repo map
 
-- [src/app](./src/app): public app routes
-- [src/components/pulse](./src/components/pulse): shared UI and PWA helpers
-- [src/lib/pulse-data.ts](./src/lib/pulse-data.ts): seed data and schedule helpers
-- [supabase/migrations/202603260001_init_pulse.sql](./supabase/migrations/202603260001_init_pulse.sql): relational schema scaffold
-- [data/imports/pulse-sessions.sample.csv](./data/imports/pulse-sessions.sample.csv): sample import file
-- [docs/architecture.md](./docs/architecture.md): product and technical structure
-- [docs/content-operations-event-week.md](./docs/content-operations-event-week.md): event-week content workflow
+| Path | Contents |
+|------|----------|
+| `src/app` | Public app routes |
+| `src/components/pulse` | Shared UI and PWA helpers |
+| `src/lib/pulse-data.ts` | Seed data and schedule helpers |
+| `supabase/migrations/` | Relational schema |
+| `data/imports/` | Sample import files |
+| `docs/` | Architecture and content-operations guides |
 
-## Product constraints
+## Roadmap
 
-- mobile first
-- no attendee login
-- low-friction use on weak venue internet
-- admin-only content editing
-- companion framing, never replacement framing
-
-## Next implementation slice
-
-1. Replace seed data with Supabase-backed reads.
-2. Add admin auth and secure CRUD for sessions, announcements, rooms, tracks, and segments.
-3. Add publish workflow, audit logging, and analytics overview.
-4. Connect preview and production deployments in Vercel.
+1. Replace seed data with Supabase-backed live reads
+2. Admin auth and content CRUD (sessions, rooms, announcements, tracks)
+3. Push notifications and multilingual support
+4. Production data sync pipeline
